@@ -59,6 +59,8 @@ h2{font-size:1.1rem;margin:0 0 10px}
 .pb select,.pb input{font:inherit;padding:8px 12px;border:2px solid transparent;border-radius:8px;background:var(--field);color:var(--ink);min-width:0}
 .pb input{flex:1 1 180px}
 .pb input:focus,.pb select:focus{outline:none;border-color:var(--muted)}
+.hide .row .a{filter:blur(6px)}
+.hide .row .a:focus{filter:none}
 #pm{flex-basis:100%;margin:0;font-weight:600;min-height:1.4em}
 [hidden]{display:none!important}
 @media(min-width:900px){#cur{display:none}}
@@ -81,9 +83,10 @@ h2{font-size:1.1rem;margin:0 0 10px}
 
 <section class="card" id="ed">
 <h2>Le tue definizioni</h2>
-<div id="rows"></div>
+<div id="rows" class="hide"></div>
 <div class="bar">
 <button class="btn" id="add" type="button">Aggiungi riga</button>
+<button class="btn" id="tg" type="button" aria-pressed="false">Mostra risposte</button>
 <button class="btn p" id="gen" type="button">Genera cruciverba</button>
 </div>
 <p id="msg" role="status"></p>
@@ -217,10 +220,13 @@ function tryLayout(ws){
   return{placed,rest,score:placed.length*10000+g.size/(h*w2)*4000-Math.abs(h-w2)*10};
 }
 
+function hideA(h){rowsEl.classList.toggle('hide',h);$('#tg').textContent=h?'Mostra risposte':'Nascondi risposte';$('#tg').setAttribute('aria-pressed',String(!h))}
+$('#tg').onclick=()=>hideA(!rowsEl.classList.contains('hide'));
+
 function generate(){
   const items=[...rowsEl.children].map(d=>({clue:d.children[0].value.trim(),word:norm(d.children[1].value)})).filter(o=>o.clue&&o.word.length>1);
   if(items.length<2){$('#msg').textContent='Inserisci almeno 2 coppie domanda/risposta (risposte di almeno 2 lettere).';return}
-  $('#msg').textContent='';save();
+  $('#msg').textContent='';save();hideA(true);
   let best=null;const t0=performance.now();
   for(let t=0;t<400&&(t<10||performance.now()-t0<1200);t++){
     const ws=items.map(o=>({...o,s:o.word.length+(t?Math.random()*4:0)})).sort((a,b)=>b.s-a.s);
