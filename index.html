@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cruciverba che ha veramente tanta aura</title>
+<title>Cruciverba che ha veramente troppa aura</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
@@ -55,6 +55,11 @@ h2{font-size:1.1rem;margin:0 0 10px}
 .cl li.act{background:var(--sel);color:#1b1a20}
 #win{background:var(--ok);color:#111;font-weight:700;padding:12px 14px;border-radius:10px;margin-top:14px}
 #miss{color:var(--muted);font-size:.9rem;margin-top:10px;max-width:60ch}
+.pb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 16px}
+.pb select,.pb input{font:inherit;padding:8px 12px;border:2px solid transparent;border-radius:8px;background:var(--field);color:var(--ink);min-width:0}
+.pb input{flex:1 1 180px}
+.pb input:focus,.pb select:focus{outline:none;border-color:var(--muted)}
+#pm{flex-basis:100%;margin:0;font-weight:600;min-height:1.4em}
 [hidden]{display:none!important}
 @media(min-width:900px){#cur{display:none}}
 @media(max-width:899px){.play{grid-template-columns:1fr}.clues{grid-template-columns:1fr;grid-template-rows:auto}.cl{max-height:240px}.row{grid-template-columns:1fr 130px 34px}}
@@ -62,8 +67,17 @@ h2{font-size:1.1rem;margin:0 0 10px}
 </head>
 <body>
 <main>
-<div class="top"><h1>Cruciverba su misura</h1><button class="btn" id="theme" type="button" aria-label="Cambia tema chiaro/scuro">◐</button></div>
+<div class="top"><h1>Cruciverba che ha veramente troppa aura</h1><button class="btn" id="theme" type="button" aria-label="Cambia tema chiaro/scuro">◐</button></div>
 <p class="lead" id="lead">Scrivi le tue domande con le relative risposte: la pagina incastra le parole in una griglia che potrai risolvere subito.</p>
+
+<section class="pb" id="pb">
+<select id="ps" aria-label="Preset salvati"></select>
+<button class="btn" id="pl" type="button">Carica</button>
+<button class="btn" id="pd" type="button">Elimina</button>
+<input id="pn" placeholder="Nome nuovo preset" maxlength="40" aria-label="Nome del preset">
+<button class="btn p" id="psv" type="button">Salva come preset</button>
+<p id="pm" role="status"></p>
+</section>
 
 <section class="card" id="ed">
 <h2>Le tue definizioni</h2>
@@ -122,6 +136,44 @@ function addRow(q='',a=''){
 }
 const saved=load();(saved&&saved.length?saved:DEF).forEach(([q,a])=>addRow(q,a));
 $('#add').onclick=()=>addRow().children[0].focus();
+
+const PRESETS={"cruciverba esempio":[["Capitale d'Italia","Roma"],["Il pianeta rosso","Marte"],["Città sulla laguna","Venezia"],["Frutto giallo e curvo","Banana"],["Strumento con 88 tasti","Pianoforte"],["Il fiume più lungo d'Italia","Po"],["Sport con racchetta e rete","Tennis"],["Bevanda calda ricavata da chicchi","Caffè"],["Astro che illumina il giorno","Sole"],["Il re della foresta","Leone"],["Città della Torre Eiffel","Parigi"],["Vulcano vicino a Napoli","Vesuvio"],["Tonda, con pomodoro e mozzarella","Pizza"],["Si indossa ai piedi","Scarpa"],["Il mare tra Italia e Croazia","Adriatico"],["Il mese dopo gennaio","Febbraio"],["Ha otto zampe e tesse la tela","Ragno"],["Sport con il canestro","Basket"],["Il pittore della Gioconda","Leonardo"],["Metallo prezioso e giallo","Oro"],["Il contrario di notte","Giorno"],["Ha molte pagine da leggere","Libro"],["Il continente in cui si trova l'Italia","Europa"],["Il pianeta con gli anelli","Saturno"],["Il frutto della vite","Uva"],["Si accende per fare luce","Lampada"],["Animale che fa miao","Gatto"],["Città con la torre pendente","Pisa"],["La stagione più fredda","Inverno"],["Formaggio grattugiato sulla pasta","Parmigiano"],["Strumento a sei corde","Chitarra"],["La montagna più alta delle Alpi","Monte Bianco"]],
+"cruciverba 1":[["Nome di un compagno di classe molto stupido","Samuel"],["Nessuno lo ama","Albertini"],["Dudù","Nico"],["Paura senza P","Aura"],["Noto streamer pelato","Marza"],["Un colore","Viola"],["Gioco con le carte","Blackjack"],["Un support cancro","Blitzcrank"],["Il numero 6 ma americano","Six"],["Il numero 7 ma americano","Seven"],["Una bevanda energetica molto famosa","Redbull"],["Il tuo posto preferito","Letto"],["Ti viene sempre rubato","Telefono"],["Senza non puoi sopravvivere","Dopamina"],["Verso di animale","Miao"],["Tu ma jungler","Evelynn"],["5 Uccisioni di fila","Pentakill"],["Un animale","Gatto"],["Lo sei tu","Diva"],["Un gioco a cui sei bravo","Scacchi"],["Mamma le cura","Piante"],["Nome dolce per un gatto","Patata"],["Parola dispregiativa per un gay","Frocio"],["Preferisce la notte al giorno","Notturno"],["Lungolago di...","Lugano"],["Ha un casinò","Campione"],["Ha dei panini buonissimi","McDonald"],["È tuo ed è sempre buonissimo","Profumo"],["Samuel te lo chiede sempre","Caricatore"],["Andrea la fuma","Svapo"],["Impossibile non...","Dormire"],["Un paese vicino Lugano","Grancia"],["Scuola Superiore di Informatica di Gestione","SSIG"],["Videogiocatore british","Gamer"],["Un suo personaggio è D.VA","Overwatch"],["Nero in spagnolo","Negro"],["Notiziario online ticinese","Tio"],["Taglio a stacco di...","Frizione"],["Li si usa per vedere meglio","Occhiali"],["Applicativo per comunicare online","Discord"],["Professione ormai inutile","Influencer"],["Cognome di un certo Claudio","Condolf"],["La tua forma preferita","Cubo"],["Una cena perfetta!","Sushi"],["I letti da soffiare","Fazzoletti"],["Nico dovrebbe mangiare più...","Proteine"],["Noi Vacci tui","Fanculo"],["Nome maschile","Gianmarco"]]};
+let mem={};
+const getU=()=>{try{return JSON.parse(localStorage.getItem('cw_presets'))||mem}catch(e){return mem}};
+const setU=o=>{mem=o;try{localStorage.setItem('cw_presets',JSON.stringify(o))}catch(e){}};
+const ps=$('#ps');
+function say(t,bad){$('#pm').textContent=t;$('#pm').style.color=bad?'var(--acc)':'var(--ok)'}
+function fill(keep){
+  ps.innerHTML='';
+  [['Predefiniti',Object.keys(PRESETS)],['I tuoi preset',Object.keys(getU())]].forEach(([l,o])=>{
+    if(!o.length)return;const g=document.createElement('optgroup');g.label=l;
+    o.forEach(n=>g.appendChild(new Option(n,n)));ps.appendChild(g);
+  });
+  if(keep)ps.value=keep;
+}
+fill();
+$('#pl').onclick=()=>{
+  const n=ps.value,d=Object.keys(PRESETS).includes(n)?PRESETS[n]:getU()[n];if(!d)return;
+  rowsEl.innerHTML='';d.forEach(([q,a])=>addRow(q,a));save();
+  $('#puz').hidden=true;$('#ed').hidden=false;$('#lead').hidden=false;$('#msg').textContent='';
+  say('Preset «'+n+'» caricato: premi "Genera cruciverba".');
+};
+$('#psv').onclick=()=>{
+  const n=$('#pn').value.trim();
+  const d=[...rowsEl.children].map(r=>[r.children[0].value.trim(),r.children[1].value.trim()]).filter(x=>x[0]&&norm(x[1]).length>1);
+  if(!n)return say('Scrivi un nome per il preset.',1);
+  if(Object.keys(PRESETS).some(k=>k.toLowerCase()===n.toLowerCase()))return say('Questo nome è riservato a un preset predefinito.',1);
+  if(d.length<2)return say('Servono almeno 2 coppie domanda/risposta.',1);
+  const u=getU(),ex=Object.keys(u).includes(n);u[n]=d;setU(u);fill(n);$('#pn').value='';
+  say('Preset «'+n+(ex?'» aggiornato.':'» salvato.'));
+};
+$('#pn').onkeydown=e=>{if(e.key==='Enter')$('#psv').click()};
+$('#pd').onclick=()=>{
+  const n=ps.value,u=getU();
+  if(!Object.keys(u).includes(n))return say('I preset predefiniti non si possono eliminare.',1);
+  delete u[n];setU(u);fill();say('Preset «'+n+'» eliminato.');
+};
 
 function tryLayout(ws){
   const g=new Map(),placed=[],key=(r,c)=>r+','+c;
@@ -216,7 +268,7 @@ function fit(){
   if(!cols)return;
   const W=$('.play').clientWidth,desk=innerWidth>=900;
   const gw=desk?Math.max(W*.4,Math.min(W*.6,W-480)):W;
-  const h=innerHeight-(desk?110:200);
+  const h=innerHeight-(desk?170:260);
   const cs=Math.max(12,Math.min(50,Math.floor(Math.min((gw-cols-6)/cols,(h-rows-6)/rows))));
   $('#grid').style.setProperty('--cs',cs+'px');
   $('#clues').style.height=desk?$('#grid').offsetHeight+'px':'';
