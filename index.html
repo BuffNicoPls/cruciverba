@@ -61,6 +61,7 @@ h2{font-size:1.1rem;margin:0 0 10px}
 .pb input:focus,.pb select:focus{outline:none;border-color:var(--muted)}
 .hide .row .a{filter:blur(6px)}
 .hide .row .a:focus{filter:none}
+.gh{flex-basis:100%;color:var(--muted);font-size:.9rem}.gh summary{cursor:pointer;font-weight:600}.gh div{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.gh p{margin:6px 0 0}
 #pm{flex-basis:100%;margin:0;font-weight:600;min-height:1.4em}
 [hidden]{display:none!important}
 @media(min-width:900px){#cur{display:none}}
@@ -77,7 +78,11 @@ h2{font-size:1.1rem;margin:0 0 10px}
 <button class="btn" id="pl" type="button">Carica</button>
 <button class="btn" id="pd" type="button">Elimina</button>
 <input id="pn" placeholder="Nome nuovo preset" maxlength="40" aria-label="Nome del preset">
-<button class="btn p" id="psv" type="button">Salva come preset</button>
+<button class="btn" id="psv" type="button">Salva su questo dispositivo</button>
+<button class="btn p" id="pgh" type="button">Salva online (GitHub)</button>
+<details class="gh"><summary>Sincronizzazione GitHub</summary>
+<div><input id="tk" type="password" autocomplete="off" placeholder="Token GitHub (github_pat_...)" aria-label="Token GitHub"><button class="btn" id="tks" type="button">Salva token</button><button class="btn" id="tkr" type="button">Rimuovi token</button></div>
+<p>Il token resta solo nel browser di questo dispositivo e serve solo per pubblicare o eliminare preset online. Per caricarli non serve.</p></details>
 <p id="pm" role="status"></p>
 </section>
 
@@ -146,36 +151,74 @@ let mem={};
 const getU=()=>{try{return JSON.parse(localStorage.getItem('cw_presets'))||mem}catch(e){return mem}};
 const setU=o=>{mem=o;try{localStorage.setItem('cw_presets',JSON.stringify(o))}catch(e){}};
 const ps=$('#ps');
+const GH={o:'BuffNicoPls',r:'cruciverba',f:'presets.json'};
+const API='https://api.github.com/repos/'+GH.o+'/'+GH.r+'/contents/'+GH.f;
+let REM={};
+const tok=()=>{try{return localStorage.getItem('cw_token')||''}catch(e){return ''}};
+const hdr=()=>{const h={Accept:'application/vnd.github+json'};if(tok())h.Authorization='Bearer '+tok();return h};
+const b64d=t=>new TextDecoder().decode(Uint8Array.from(atob(t.replace(/\s/g,'')),c=>c.charCodeAt(0)));
+const b64e=t=>{let b='';new TextEncoder().encode(t).forEach(c=>b+=String.fromCharCode(c));return btoa(b)};
+async function ghGet(){
+  const r=await fetch(API,{headers:hdr(),cache:'no-store'});
+  if(r.status===404)return{data:{},sha:null};
+  if(!r.ok)throw new Error('GitHub '+r.status);
+  const j=await r.json();
+  return{data:JSON.parse(b64d(j.content)||'{}'),sha:j.sha};
+}
+async function ghEdit(fn,msg){
+  const {data,sha}=await ghGet();fn(data);
+  const r=await fetch(API,{method:'PUT',headers:{...hdr(),'Content-Type':'application/json'},body:JSON.stringify({message:msg,content:b64e(JSON.stringify(data,null,1)),...(sha?{sha}:{})})});
+  if(!r.ok)throw new Error([401,403,404].includes(r.status)?'token non valido o senza permesso di scrittura sul repository':'GitHub '+r.status);
+  REM=data;
+}
 function say(t,bad){$('#pm').textContent=t;$('#pm').style.color=bad?'var(--acc)':'var(--ok)'}
 function fill(keep){
   ps.innerHTML='';
-  [['Predefiniti',Object.keys(PRESETS)],['I tuoi preset',Object.keys(getU())]].forEach(([l,o])=>{
-    if(!o.length)return;const g=document.createElement('optgroup');g.label=l;
-    o.forEach(n=>g.appendChild(new Option(n,n)));ps.appendChild(g);
+  [['p','Predefiniti',PRESETS],['r','Online (GitHub)',REM],['l','Solo su questo dispositivo',getU()]].forEach(([k,l,o])=>{
+    const n=Object.keys(o);if(!n.length)return;const g=document.createElement('optgroup');g.label=l;
+    n.forEach(x=>g.appendChild(new Option(x,k+':'+x)));ps.appendChild(g);
   });
   if(keep)ps.value=keep;
 }
-fill();
-$('#pl').onclick=()=>{
-  const n=ps.value,d=Object.keys(PRESETS).includes(n)?PRESETS[n]:getU()[n];if(!d)return;
-  rowsEl.innerHTML='';d.forEach(([q,a])=>addRow(q,a));save();
-  $('#puz').hidden=true;$('#ed').hidden=false;$('#lead').hidden=false;$('#msg').textContent='';
-  say('Preset «'+n+'» caricato: premi "Genera cruciverba".');
-};
-$('#psv').onclick=()=>{
+const sel1=()=>[ps.value[0],ps.value.slice(2)];
+function cur(){
   const n=$('#pn').value.trim();
   const d=[...rowsEl.children].map(r=>[r.children[0].value.trim(),r.children[1].value.trim()]).filter(x=>x[0]&&norm(x[1]).length>1);
   if(!n)return say('Scrivi un nome per il preset.',1);
   if(Object.keys(PRESETS).some(k=>k.toLowerCase()===n.toLowerCase()))return say('Questo nome è riservato a un preset predefinito.',1);
   if(d.length<2)return say('Servono almeno 2 coppie domanda/risposta.',1);
-  const u=getU(),ex=Object.keys(u).includes(n);u[n]=d;setU(u);fill(n);$('#pn').value='';
-  say('Preset «'+n+(ex?'» aggiornato.':'» salvato.'));
+  return{n,d};
+}
+fill();
+ghGet().then(x=>{REM=x.data;fill(ps.value)}).catch(()=>say('Preset online non raggiungibili al momento.',1));
+$('#tks').onclick=()=>{const v=$('#tk').value.trim();if(!v)return say('Incolla prima il token.',1);try{localStorage.setItem('cw_token',v)}catch(e){return say('Il browser non permette di salvare il token.',1)}$('#tk').value='';say('Token salvato su questo dispositivo.')};
+$('#tkr').onclick=()=>{try{localStorage.removeItem('cw_token')}catch(e){}say('Token rimosso da questo dispositivo.')};
+$('#pl').onclick=()=>{
+  const [k,n]=sel1(),d=k==='p'?PRESETS[n]:k==='r'?REM[n]:getU()[n];if(!d)return;
+  rowsEl.innerHTML='';d.forEach(([q,a])=>addRow(q,a));save();
+  $('#puz').hidden=true;$('#ed').hidden=false;$('#lead').hidden=false;$('#msg').textContent='';
+  say('Preset «'+n+'» caricato: premi "Genera cruciverba".');
+};
+$('#psv').onclick=()=>{
+  const c=cur();if(!c)return;
+  const u=getU(),ex=Object.keys(u).includes(c.n);u[c.n]=c.d;setU(u);fill('l:'+c.n);$('#pn').value='';
+  say('Preset «'+c.n+(ex?'» aggiornato su questo dispositivo.':'» salvato su questo dispositivo.'));
+};
+$('#pgh').onclick=async()=>{
+  const c=cur();if(!c)return;
+  if(!tok())return say('Per pubblicare online inserisci prima il token in "Sincronizzazione GitHub".',1);
+  say('Pubblico su GitHub...');
+  try{await ghEdit(o=>{o[c.n]=c.d},'Preset: '+c.n);fill('r:'+c.n);$('#pn').value='';say('Preset «'+c.n+'» pubblicato: lo trovi subito su tutti i dispositivi.')}
+  catch(e){say('Pubblicazione non riuscita: '+e.message+'.',1)}
 };
 $('#pn').onkeydown=e=>{if(e.key==='Enter')$('#psv').click()};
-$('#pd').onclick=()=>{
-  const n=ps.value,u=getU();
-  if(!Object.keys(u).includes(n))return say('I preset predefiniti non si possono eliminare.',1);
-  delete u[n];setU(u);fill();say('Preset «'+n+'» eliminato.');
+$('#pd').onclick=async()=>{
+  const [k,n]=sel1();
+  if(k==='p')return say('I preset predefiniti non si possono eliminare.',1);
+  if(k==='l'){const u=getU();delete u[n];setU(u);fill();return say('Preset «'+n+'» eliminato da questo dispositivo.')}
+  if(!tok())return say('Per eliminare un preset online serve il token.',1);
+  try{await ghEdit(o=>{delete o[n]},'Rimuovi preset: '+n);fill();say('Preset «'+n+'» eliminato da GitHub.')}
+  catch(e){say('Eliminazione non riuscita: '+e.message+'.',1)}
 };
 
 function tryLayout(ws){
