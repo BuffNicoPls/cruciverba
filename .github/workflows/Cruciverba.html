@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cruciverba su misura</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f2f2f7;--panel:#fff;--field:#eceaf4;--ink:#1b1a20;--muted:#6b6a7a;--cell:#fff;--blk:#1b1a20;--line:#c9c8d6;--sel:#ffd23f;--word:#dcdbf3;--acc:#d62839;--ok:#1b8a5a;--num:#6b6a7a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1a20;--panel:#25242d;--field:#15141a;--ink:#f4f4f6;--muted:#a6a5b4;--cell:#3a3948;--blk:#000;--line:#23222b;--sel:#f2c94c;--word:#57557a;--acc:#ff6b7a;--ok:#5fd39a;--num:#e2e1ee}}
+:root[data-theme="dark"]{--bg:#1b1a20;--panel:#25242d;--field:#15141a;--ink:#f4f4f6;--muted:#a6a5b4;--cell:#3a3948;--blk:#000;--line:#23222b;--sel:#f2c94c;--word:#57557a;--acc:#ff6b7a;--ok:#5fd39a;--num:#e2e1ee}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Poppins,"Avenir Next","Segoe UI",system-ui,sans-serif}
+main{max-width:1400px;margin:0 auto;padding:16px 16px 40px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+h1{font-size:clamp(1.7rem,5vw,2.8rem);line-height:1.1;margin:6px 0;font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.1rem;margin:0 0 10px}
+.lead{color:var(--muted);margin:0 0 18px;max-width:60ch}
+.card{background:var(--panel);border-radius:14px;padding:18px}
+.row{display:grid;grid-template-columns:1fr 200px 40px;gap:8px;margin-bottom:8px}
+.row input{font:inherit;padding:9px 12px;border:2px solid transparent;border-radius:8px;background:var(--field);color:var(--ink);min-width:0}
+.row .a{font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.row input:focus{outline:none;border-color:var(--muted)}
+.x{border:0;background:none;color:var(--muted);font-size:22px;cursor:pointer;border-radius:8px}
+.x:hover{color:var(--acc)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.btn{font:inherit;font-weight:600;padding:8px 16px;border-radius:10px;border:1.5px solid var(--muted);background:none;color:var(--ink);cursor:pointer}
+.btn.p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn:focus-visible,.x:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
+#msg{margin:10px 0 0;color:var(--acc);font-weight:600;min-height:1.4em}
+#puz{margin-top:26px}
+#cur{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;min-height:3.4em;display:flex;align-items:center;background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:10px;font-weight:600;margin-bottom:12px}
+.play{display:grid;grid-template-columns:auto minmax(0,1fr);gap:24px;align-items:start}
+#grid{display:grid;gap:1px;background:var(--line);width:max-content;grid-auto-rows:var(--cs)}
+.cell{position:relative;background:var(--cell)}
+.blk{background:var(--blk)}
+.cell input{width:100%;height:100%;border:0;padding:0;background:transparent;text-align:center;font:700 calc(var(--cs)*.52) Poppins,system-ui,sans-serif;text-transform:uppercase;color:var(--ink);caret-color:transparent;outline:none;cursor:pointer}
+.n{position:absolute;top:1px;left:3px;font-size:max(7px,calc(var(--cs)*.26));font-weight:600;color:var(--num);pointer-events:none;line-height:1}
+.cell.w{background:var(--word)}
+.cell.s{background:var(--sel)}
+.cell.s input,.cell.s .n{color:#1b1a20}
+.cell.ok{box-shadow:inset 0 0 0 3px var(--ok)}
+.cell.bad{box-shadow:inset 0 0 0 3px var(--acc)}
+.clues{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr);gap:22px}
+.pn{display:flex;flex-direction:column;min-height:0}
+.pn h3{display:flex;align-items:center;gap:8px;margin:0 0 6px;padding-bottom:8px;border-bottom:1px solid var(--line);font-size:1rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.pn svg{height:16px;border-radius:2px}
+.cl{flex:1;min-height:0;overflow-y:auto;list-style:none;margin:0;padding:0 6px 0 0;position:relative;scrollbar-width:thin;scrollbar-color:var(--muted) transparent}
+.cl li{display:flex;gap:10px;padding:6px 8px;border-radius:6px;cursor:pointer;line-height:1.35}
+.cl li b{min-width:2.2em;font-weight:700}
+.cl li:hover{background:var(--panel)}
+.cl li.alt{background:var(--word)}
+.cl li.act{background:var(--sel);color:#1b1a20}
+#win{background:var(--ok);color:#111;font-weight:700;padding:12px 14px;border-radius:10px;margin-top:14px}
+#miss{color:var(--muted);font-size:.9rem;margin-top:10px;max-width:60ch}
+[hidden]{display:none!important}
+@media(min-width:900px){#cur{display:none}}
+@media(max-width:899px){.play{grid-template-columns:1fr}.clues{grid-template-columns:1fr;grid-template-rows:auto}.cl{max-height:240px}.row{grid-template-columns:1fr 130px 34px}}
+</style>
+</head>
+<body>
+<main>
+<div class="top"><h1>Cruciverba su misura</h1><button class="btn" id="theme" type="button" aria-label="Cambia tema chiaro/scuro">◐</button></div>
+<p class="lead" id="lead">Scrivi le tue domande con le relative risposte: la pagina incastra le parole in una griglia che potrai risolvere subito.</p>
+
+<section class="card" id="ed">
+<h2>Le tue definizioni</h2>
+<div id="rows"></div>
+<div class="bar">
+<button class="btn" id="add" type="button">Aggiungi riga</button>
+<button class="btn p" id="gen" type="button">Genera cruciverba</button>
+</div>
+<p id="msg" role="status"></p>
+</section>
+
+<section id="puz" hidden>
+<div id="cur"></div>
+<div class="play">
+<div class="left">
+<div id="gw"><div id="grid"></div></div>
+<div class="bar">
+<button class="btn p" id="back" type="button">Modifica domande</button>
+<button class="btn" id="chk" type="button">Verifica</button>
+<button class="btn" id="revw" type="button">Rivela parola</button>
+<button class="btn" id="reva" type="button">Rivela tutto</button>
+<button class="btn" id="clr" type="button">Cancella</button>
+<button class="btn" id="regen" type="button">Nuova griglia</button>
+</div>
+<div id="win" hidden>Complimenti, cruciverba completato!</div>
+<div id="miss" hidden></div>
+</div>
+<div class="clues" id="clues">
+<div class="pn"><h3><svg viewBox="0 0 3 2"><rect width="1" height="2" fill="#009246"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#ce2b37"/></svg>Orizzontale →</h3><ol id="la" class="cl"></ol></div>
+<div class="pn"><h3>Verticale ↓</h3><ol id="ld" class="cl"></ol></div>
+</div>
+</div>
+</section>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const root=document.documentElement;
+let th='dark';try{th=localStorage.getItem('cw_theme')||'dark'}catch(e){}
+root.dataset.theme=th;
+$('#theme').onclick=()=>{th=th==='dark'?'light':'dark';root.dataset.theme=th;try{localStorage.setItem('cw_theme',th)}catch(e){}};
+const norm=s=>s.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z]/g,'');
+const DEF=[["Capitale d'Italia","Roma"],["Il pianeta rosso","Marte"],["Città sulla laguna","Venezia"],["Frutto giallo e curvo","Banana"],["Strumento con 88 tasti","Pianoforte"],["Lo è il mare senza vento","Calmo"],["Sinonimo di casa","Abitazione"],["Il fiume più lungo d'Italia","Po"]];
+const rowsEl=$('#rows');
+let P=[],cells={},rows=0,cols=0,sel={k:'',d:0};
+
+function save(){try{localStorage.setItem('cw_v1',JSON.stringify([...rowsEl.children].map(d=>[d.children[0].value,d.children[1].value])))}catch(e){}}
+function load(){try{return JSON.parse(localStorage.getItem('cw_v1'))}catch(e){return null}}
+function addRow(q='',a=''){
+  const d=document.createElement('div');d.className='row';
+  d.innerHTML='<input class="q" placeholder="Definizione / domanda" maxlength="120" aria-label="Domanda"><input class="a" placeholder="Risposta" maxlength="24" aria-label="Risposta"><button type="button" class="x" aria-label="Rimuovi riga">×</button>';
+  d.children[0].value=q;d.children[1].value=a;
+  d.children[2].onclick=()=>{d.remove();save()};
+  d.oninput=save;
+  d.children[1].onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();(d.nextSibling||addRow()).children[0].focus()}};
+  rowsEl.appendChild(d);return d;
+}
+const saved=load();(saved&&saved.length?saved:DEF).forEach(([q,a])=>addRow(q,a));
+$('#add').onclick=()=>addRow().children[0].focus();
+
+function tryLayout(ws){
+  const g=new Map(),placed=[],key=(r,c)=>r+','+c;
+  let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;
+  const ok=(w,r,c,d)=>{
+    const dr=d?1:0,dc=d?0:1;
+    if(g.has(key(r-dr,c-dc))||g.has(key(r+dr*w.length,c+dc*w.length)))return 0;
+    let x=0;
+    for(let i=0;i<w.length;i++){
+      const rr=r+dr*i,cc=c+dc*i,e=g.get(key(rr,cc));
+      if(e!==undefined){if(e!==w[i])return 0;x++}
+      else if(g.has(key(rr+dc,cc+dr))||g.has(key(rr-dc,cc-dr)))return 0;
+    }
+    return x;
+  };
+  const put=(o,r,c,d)=>{
+    for(let i=0;i<o.word.length;i++)g.set(key(r+(d?i:0),c+(d?0:i)),o.word[i]);
+    a0=Math.min(a0,r);b0=Math.min(b0,c);a1=Math.max(a1,r+(d?o.word.length-1:0));b1=Math.max(b1,c+(d?0:o.word.length-1));
+    placed.push({...o,r,c,d});
+  };
+  put(ws[0],0,0,0);
+  let rest=ws.slice(1),prog=true;
+  while(prog&&rest.length){
+    prog=false;
+    for(let k=0;k<rest.length;k++){
+      const w=rest[k].word,area=(a1-a0+1)*(b1-b0+1);let bp=null,bs=-1e9;
+      for(const p of placed)for(let i=0;i<p.word.length;i++){
+        const pr=p.r+(p.d?i:0),pc=p.c+(p.d?0:i);
+        for(let j=0;j<w.length;j++)if(w[j]===p.word[i]){
+          const d=p.d?0:1,r=pr-(d?j:0),c=pc-(d?0:j),x=ok(w,r,c,d);
+          if(!x)continue;
+          const h=Math.max(a1,r+(d?w.length-1:0))-Math.min(a0,r)+1,ww=Math.max(b1,c+(d?0:w.length-1))-Math.min(b0,c)+1;
+          const s=x*40-(h*ww-area)-Math.abs(h-ww)+Math.random()*2;
+          if(s>bs){bs=s;bp={r,c,d}}
+        }
+      }
+      if(bp){put(rest[k],bp.r,bp.c,bp.d);rest.splice(k,1);k--;prog=true}
+    }
+  }
+  const h=a1-a0+1,w2=b1-b0+1;
+  return{placed,rest,score:placed.length*10000+g.size/(h*w2)*4000-Math.abs(h-w2)*10};
+}
+
+function generate(){
+  const items=[...rowsEl.children].map(d=>({clue:d.children[0].value.trim(),word:norm(d.children[1].value)})).filter(o=>o.clue&&o.word.length>1);
+  if(items.length<2){$('#msg').textContent='Inserisci almeno 2 coppie domanda/risposta (risposte di almeno 2 lettere).';return}
+  $('#msg').textContent='';save();
+  let best=null;const t0=performance.now();
+  for(let t=0;t<400&&(t<10||performance.now()-t0<1200);t++){
+    const ws=items.map(o=>({...o,s:o.word.length+(t?Math.random()*4:0)})).sort((a,b)=>b.s-a.s);
+    const r=tryLayout(ws);if(!best||r.score>best.score)best=r;
+  }
+  build(best);
+}
+
+function build(res){
+  P=res.placed;
+  const mr=Math.min(...P.map(p=>p.r)),mc=Math.min(...P.map(p=>p.c));
+  P.forEach((p,i)=>{p.i=i;p.r-=mr;p.c-=mc;p.keys=p.word.split('').map((_,j)=>(p.r+(p.d?j:0))+','+(p.c+(p.d?0:j)))});
+  rows=Math.max(...P.map(p=>p.r+(p.d?p.word.length:1)));
+  cols=Math.max(...P.map(p=>p.c+(p.d?1:p.word.length)));
+  cells={};
+  P.forEach(p=>p.keys.forEach((k,j)=>{const [r,c]=k.split(',').map(Number);const o=cells[k]||(cells[k]={r,c,ch:p.word[j],w:[null,null]});o.w[p.d]=p.i}));
+  const starts=[...new Set(P.map(p=>p.keys[0]))].sort((a,b)=>{const x=a.split(',').map(Number),y=b.split(',').map(Number);return x[0]-y[0]||x[1]-y[1]});
+  starts.forEach((k,i)=>cells[k].num=i+1);
+  P.forEach(p=>p.num=cells[p.keys[0]].num);
+  const grid=$('#grid');grid.innerHTML='';grid.style.gridTemplateColumns=`repeat(${cols},var(--cs))`;
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const k=r+','+c,d=document.createElement('div');
+    if(cells[k]){
+      d.className='cell';
+      if(cells[k].num){const n=document.createElement('span');n.className='n';n.textContent=cells[k].num;d.appendChild(n)}
+      const i=document.createElement('input');i.maxLength=2;i.autocomplete='off';i.autocapitalize='characters';i.spellcheck=false;i.setAttribute('aria-label','Casella riga '+(r+1)+' colonna '+(c+1));
+      wire(i,k);d.appendChild(i);cells[k].el=d;cells[k].inp=i;
+    }else d.className='blk';
+    grid.appendChild(d);
+  }
+  const la=$('#la'),ld=$('#ld');la.innerHTML=ld.innerHTML='';
+  [...P].sort((a,b)=>a.num-b.num).forEach(p=>{
+    const li=document.createElement('li');li.dataset.i=p.i;li.innerHTML='<b></b><span></span>';
+    li.firstChild.textContent=p.num;li.lastChild.textContent=p.clue;
+    li.onclick=()=>select(p.keys[0],p.d);(p.d?ld:la).appendChild(li);
+  });
+  const m=$('#miss');m.hidden=!res.rest.length;
+  if(res.rest.length)m.textContent='Non sono riuscito a incastrare: '+res.rest.map(o=>o.word).join(', ')+'. Prova "Nuova griglia" oppure aggiungi parole con lettere in comune.';
+  $('#win').hidden=true;$('#ed').hidden=true;$('#lead').hidden=true;$('#puz').hidden=false;fit();
+  select(P[0].keys[0],P[0].d);
+  $('#puz').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function fit(){
+  if(!cols)return;
+  const W=$('.play').clientWidth,desk=innerWidth>=900;
+  const gw=desk?Math.max(W*.4,Math.min(W*.6,W-480)):W;
+  const h=innerHeight-(desk?110:200);
+  const cs=Math.max(12,Math.min(50,Math.floor(Math.min((gw-cols-6)/cols,(h-rows-6)/rows))));
+  $('#grid').style.setProperty('--cs',cs+'px');
+  $('#clues').style.height=desk?$('#grid').offsetHeight+'px':'';
+}
+let lw=innerWidth;
+addEventListener('resize',()=>{if(innerWidth!==lw){lw=innerWidth;fit()}});
+
+function select(k,dir){
+  const w=cells[k].w;
+  if(dir===undefined)dir=w[sel.d]!=null?sel.d:1-sel.d;
+  if(w[dir]==null)dir=1-dir;
+  sel={k,d:dir};paint();
+}
+function paint(){
+  document.querySelectorAll('.cell.s,.cell.w').forEach(e=>e.classList.remove('s','w'));
+  const c=cells[sel.k],p=P[c.w[sel.d]];
+  p.keys.forEach(x=>cells[x].el.classList.add('w'));
+  c.el.classList.add('s');
+  document.querySelectorAll('li.act,li.alt').forEach(e=>e.classList.remove('act','alt'));
+  [[c.w[sel.d],'act'],[c.w[1-sel.d],'alt']].forEach(([i,cl])=>{
+    if(i==null)return;
+    const li=document.querySelector('li[data-i="'+i+'"]');li.classList.add(cl);
+    const bx=li.parentNode;bx.scrollTo({top:li.offsetTop-bx.clientHeight/2+li.offsetHeight/2,behavior:'smooth'});
+  });
+  $('#cur').textContent=p.num+' '+(p.d?'Verticale':'Orizzontale')+': '+p.clue+' ('+p.word.length+')';
+  if(document.activeElement!==c.inp)c.inp.focus();
+}
+function step(dx){
+  const p=P[cells[sel.k].w[sel.d]],i=p.keys.indexOf(sel.k)+dx;
+  if(i>=0&&i<p.keys.length){select(p.keys[i],sel.d);return true}
+  return false;
+}
+function arrow(K){
+  const dr=K==='ArrowUp'?-1:K==='ArrowDown'?1:0,dc=K==='ArrowLeft'?-1:K==='ArrowRight'?1:0;
+  let r=cells[sel.k].r+dr,c=cells[sel.k].c+dc;
+  while(r>=0&&c>=0&&r<rows&&c<cols){
+    const k=r+','+c;if(cells[k]){select(k,dr?1:0);return}
+    r+=dr;c+=dc;
+  }
+}
+function wire(i,k){
+  i.onpointerdown=()=>{i._was=sel.k===k};
+  i.onclick=()=>{if(i._was)select(k,1-sel.d)};
+  i.onfocus=()=>{if(sel.k!==k)select(k)};
+  i.oninput=()=>{
+    const v=norm(i.value).slice(-1);i.value=v;
+    cells[k].el.classList.remove('ok','bad');
+    if(v)step(1);
+    done();
+  };
+  i.onkeydown=e=>{
+    const K=e.key;
+    if(K==='Backspace'&&!i.value){e.preventDefault();if(step(-1)){const c=cells[sel.k];c.inp.value='';c.el.classList.remove('ok','bad')}}
+    else if(K.startsWith('Arrow')){e.preventDefault();arrow(K)}
+    else if(K===' '||K==='Enter'){e.preventDefault();select(k,1-sel.d)}
+  };
+}
+function done(){$('#win').hidden=!Object.values(cells).every(c=>c.inp.value===c.ch)}
+
+$('#gen').onclick=generate;
+$('#back').onclick=()=>{$('#puz').hidden=true;$('#ed').hidden=false;$('#lead').hidden=false;scrollTo({top:0,behavior:'smooth'})};
+$('#regen').onclick=generate;
+$('#chk').onclick=()=>Object.values(cells).forEach(c=>{
+  c.el.classList.remove('ok','bad');
+  if(c.inp.value)c.el.classList.add(c.inp.value===c.ch?'ok':'bad');
+});
+$('#revw').onclick=()=>{P[cells[sel.k].w[sel.d]].keys.forEach(k=>{cells[k].inp.value=cells[k].ch;cells[k].el.classList.remove('ok','bad')});done()};
+$('#reva').onclick=()=>{Object.values(cells).forEach(c=>{c.inp.value=c.ch;c.el.classList.remove('ok','bad')});done()};
+$('#clr').onclick=()=>{Object.values(cells).forEach(c=>{c.inp.value='';c.el.classList.remove('ok','bad')});done()};
+</script>
+</body>
+</html>
